@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title></title>
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+        <script src="http://koda.nu/simple.js">
+            class Coordinate {
+                constructor(X, Y) {
+                    this.x = X;
+                    this.y = Y;
+                }
+            }
+
+            class Square {
+                constructor(X, Y, Size, Color = "lightgray") {
+                    this.coordinates = new Coordinate(X, Y);
+                    this.size = Size;
+                    this.color = Color;
+                }
+            }
+
+            class Gamespace {
+                constructor(Bounds, SquareSize, Gap, SquareColor = "lightgray") {
+                    this.bounds = Bounds;
+                    this.squareSize = SquareSize;
+                    this.gap = Gap;
+                    this.squareColor = SquareColor;
+
+                    this.extraSpace = {
+                        x: this.bounds.width % (this.squareSize + this.gap),
+                        y: this.bounds.height % (this.squareSize + this.gap)
+                    };
+
+                    this.maxX = (this.bounds.width - this.extraSpace.x) / (this.squareSize + this.gap);
+                    this.maxY = (this.bounds.height - this.extraSpace.y) / (this.squareSize + this.gap);
+
+                    this.squares = [];
+                    for (var x = 0; x < this.maxX; x++) {
+                        this.squares.push([]);
+                        for (var y = 0; y < this.maxY; y++) {
+                            this.squares[x].push(new Square(this.extraSpace.x/2 + x * (this.squareSize + this.gap), this.extraSpace.y/2 + y * (this.squareSize + this.gap), this.squareSize, this.squareColor));
+                        }
+                    } 
+                    this.drawSquares();
+                }
+
+                drawSquares() {
+                    for (var x = 0; x < this.squares.length; x++) {
+                        for (var y = 0; y < this.squares[x].length; y++) {
+                            console.log(x + " " + y)
+                            rectangle(this.squares[x][y].coordinates.x, this.squares[x][y].coordinates.y, this.squares[x][y].size, this.squares[x][y].size, this.squares[x][y].color);
+                        }
+                    } 
+                }
+            }
+
+            class Snake {
+                constructor(X, Y, Gamespace, Color = "Black", Size = 1) {
+                    this.coordinates = [];
+                    this.coordinates.push(new Coordinate(X, Y));
+                    this.gamespace = Gamespace; 
+                    this.color = Color;
+                    this.size = Size;
+
+                    this.drawSnake();
+                }
+
+                moveSnake(x, y) {
+                    this.coordinates.unshift(new Coordinate(this.coordinates[0].x + x, this.coordinates[0].y + y));
+                    if (this.coordinates.length > this.size) {
+                        var undraw = this.coordinates.pop();
+                        this.gamespace.squares[undraw.x][undraw.y] = this.gamespace.squareColor;
+                    }
+
+                    this.drawSnake();
+                }
+
+                drawSnake() {
+                    for (var draw of this.coordinates) {
+                        console.log(draw);
+                        this.gamespace.squares[draw.x][draw.y] = this.color;
+                    }
+                }
+
+                // Förflyttning av ormen
+                // Håll koll på vart ormen är
+                // Kollisioner med orm och äpple
+                
+            }
+
+            class Apple {
+                constructor(Gamespace) {
+                    console.log(Gamespace);
+                    this.gamespace = Gamespace;
+                    this.coordinates = new Coordinate(random(0, this.gamespace.maxX - 1), random(0, this.gamespace.maxY - 1))
+
+                    this.gamespace.squares[this.coordinates.x][this.coordinates.y].color = "red";
+                }
+            }
+
+            canvas = document.getElementById("canvas");
+			bounds = {
+				height: canvas.height,
+				width: canvas.width
+			}
+
+            var space = new Gamespace(bounds, 20, 2);
+            var snake = new Snake(0, 0, space);
+            var apple = new Apple(space);
+
+
+            function update() {
+                clearScreen();
+                space.drawSquares();
+                snake.moveSnake(1, 0);
+            }
+        </script>
+    </body>
+</html>
