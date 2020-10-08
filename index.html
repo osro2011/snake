@@ -48,11 +48,14 @@
                     this.drawSquares();
                 }
 
+                getSquare(coordinate) {
+                    return this.squares[coordinate.x][coordinate.y];
+                }
+
                 drawSquares() {
                     for (var x = 0; x < this.squares.length; x++) {
                         for (var y = 0; y < this.squares[x].length; y++) {
-                            console.log(x + " " + y)
-                            rectangle(this.squares[x][y].coordinates.x, this.squares[x][y].coordinates.y, this.squares[x][y].size, this.squares[x][y].size, this.squares[x][y].color);
+                            rectangle(this.getSquare({x, y}).coordinates.x, this.getSquare({x, y}).coordinates.y, this.getSquare({x, y}).size, this.getSquare({x, y}).size, this.getSquare({x, y}).color);
                         }
                     } 
                 }
@@ -60,8 +63,7 @@
 
             class Snake {
                 constructor(X, Y, Gamespace, Color = "Black", Size = 1) {
-                    this.coordinates = [];
-                    this.coordinates.push(new Coordinate(X, Y));
+                    this.coordinates = [new Coordinate(X, Y)];new Coordinate(X, Y)
                     this.gamespace = Gamespace; 
                     this.color = Color;
                     this.size = Size;
@@ -73,7 +75,7 @@
                     this.coordinates.unshift(new Coordinate(this.coordinates[0].x + x, this.coordinates[0].y + y));
                     if (this.coordinates.length > this.size) {
                         var undraw = this.coordinates.pop();
-                        this.gamespace.squares[undraw.x][undraw.y] = this.gamespace.squareColor;
+                        this.gamespace.getSquare(undraw) = this.gamespace.squareColor;
                     }
 
                     this.drawSnake();
@@ -82,7 +84,7 @@
                 drawSnake() {
                     for (var draw of this.coordinates) {
                         console.log(draw);
-                        this.gamespace.squares[draw.x][draw.y] = this.color;
+                        this.gamespace.getSquare(draw) = this.color;
                     }
                 }
 
