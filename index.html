@@ -29,6 +29,7 @@
                     this.squareSize = SquareSize;
                     this.gap = Gap;
                     this.squareColor = SquareColor;
+                    this.gameOver = false;
 
                     this.extraSpace = {
                         x: this.bounds.width % (this.squareSize + this.gap),
@@ -53,11 +54,18 @@
                 }
 
                 drawSquares() {
-                    for (var x = 0; x < this.squares.length; x++) {
-                        for (var y = 0; y < this.squares[x].length; y++) {
-                            rectangle(this.getSquare({x, y}).coordinates.x, this.getSquare({x, y}).coordinates.y, this.getSquare({x, y}).size, this.getSquare({x, y}).size, this.getSquare({x, y}).color);
-                        }
-                    } 
+                    if (!this.gameOver) {
+                        for (var x = 0; x < this.squares.length; x++) {
+                            for (var y = 0; y < this.squares[x].length; y++) {
+                                rectangle(this.getSquare({x, y}).coordinates.x, this.getSquare({x, y}).coordinates.y, this.getSquare({x, y}).size, this.getSquare({x, y}).size, this.getSquare({x, y}).color);
+                            }
+                        } 
+                    }
+                }
+
+                endGame() {
+                    this.gameOver = true;
+                    console.log("haha fuckwad you lost");
                 }
             }
 
@@ -75,7 +83,8 @@
                     this.coordinates.unshift(new Coordinate(this.coordinates[0].x + x, this.coordinates[0].y + y));
                     if (this.coordinates.length > this.size) {
                         var undraw = this.coordinates.pop();
-                        this.gamespace.getSquare(undraw) = this.gamespace.squareColor;
+                        this.gamespace.getSquare(new Coordinate(0, 0));
+                        this.gamespace.getSquare(undraw).color = this.gamespace.squareColor;
                     }
 
                     this.drawSnake();
@@ -83,8 +92,7 @@
 
                 drawSnake() {
                     for (var draw of this.coordinates) {
-                        console.log(draw);
-                        this.gamespace.getSquare(draw) = this.color;
+                        this.gamespace.getSquare(draw).color = this.color;
                     }
                 }
 
@@ -96,7 +104,6 @@
 
             class Apple {
                 constructor(Gamespace) {
-                    console.log(Gamespace);
                     this.gamespace = Gamespace;
                     this.coordinates = new Coordinate(random(0, this.gamespace.maxX - 1), random(0, this.gamespace.maxY - 1))
 
@@ -111,7 +118,7 @@
 			}
 
             var space = new Gamespace(bounds, 20, 2);
-            var snake = new Snake(0, 0, space);
+            var snake = new Snake(0, 0, space, "black", 5);
             var apple = new Apple(space);
 
 
