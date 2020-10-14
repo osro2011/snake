@@ -46,6 +46,12 @@
                             this.squares[x].push(new Square(this.extraSpace.x/2 + x * (this.squareSize + this.gap), this.extraSpace.y/2 + y * (this.squareSize + this.gap), this.squareSize, this.squareColor));
                         }
                     } 
+
+                    this.squareBounds = {
+                        x: this.squares.length,
+                        y: this.squares[0].length
+                    }
+
                     this.drawSquares();
                 }
 
@@ -60,6 +66,8 @@
                                 rectangle(this.getSquare({x, y}).coordinates.x, this.getSquare({x, y}).coordinates.y, this.getSquare({x, y}).size, this.getSquare({x, y}).size, this.getSquare({x, y}).color);
                             }
                         } 
+                    } else {
+
                     }
                 }
 
@@ -71,7 +79,7 @@
 
             class Snake {
                 constructor(X, Y, Gamespace, Color = "Black", Size = 1) {
-                    this.coordinates = [new Coordinate(X, Y)];new Coordinate(X, Y)
+                    this.coordinates = [new Coordinate(X, Y)];
                     this.gamespace = Gamespace; 
                     this.color = Color;
                     this.size = Size;
@@ -81,6 +89,12 @@
 
                 moveSnake(x, y) {
                     this.coordinates.unshift(new Coordinate(this.coordinates[0].x + x, this.coordinates[0].y + y));
+                    if (this.coordinates[0].x < 0 || this.coordinates[0].x >= this.gamespace.squareBounds.x || this.coordinates[0].y < 0 || this.coordinates[0].y >= this.gamespace.squareBounds.y) {
+                        //Snake has collided with wall, end game
+                        this.gamespace.endGame();
+                        return;
+                    }
+
                     if (this.coordinates.length > this.size) {
                         var undraw = this.coordinates.pop();
                         this.gamespace.getSquare(new Coordinate(0, 0));
@@ -96,8 +110,6 @@
                     }
                 }
 
-                // Förflyttning av ormen
-                // Håll koll på vart ormen är
                 // Kollisioner med orm och äpple
                 
             }
@@ -107,7 +119,7 @@
                     this.gamespace = Gamespace;
                     this.coordinates = new Coordinate(random(0, this.gamespace.maxX - 1), random(0, this.gamespace.maxY - 1))
 
-                    this.gamespace.squares[this.coordinates.x][this.coordinates.y].color = "red";
+                    this.gamespace.getSquare(new Coordinate(this.coordinates.x, this.coordinates.y)).color = "red";
                 }
             }
 
