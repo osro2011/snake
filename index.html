@@ -29,7 +29,6 @@
                     this.squareSize = SquareSize;
                     this.gap = Gap;
                     this.squareColor = SquareColor;
-                    this.gameOver = false;
 
                     this.extraSpace = {
                         x: this.bounds.width % (this.squareSize + this.gap),
@@ -52,6 +51,9 @@
                         y: this.squares[0].length
                     }
 
+                    this.apple = new Apple(this);
+                    this.snake = new Snake(0, 0, this, "black", 5);
+
                     this.drawSquares();
                 }
 
@@ -59,21 +61,20 @@
                     return this.squares[coordinate.x][coordinate.y];
                 }
 
-                drawSquares() {
-                    if (!this.gameOver) {
-                        for (var x = 0; x < this.squares.length; x++) {
-                            for (var y = 0; y < this.squares[x].length; y++) {
-                                rectangle(this.getSquare({x, y}).coordinates.x, this.getSquare({x, y}).coordinates.y, this.getSquare({x, y}).size, this.getSquare({x, y}).size, this.getSquare({x, y}).color);
-                            }
-                        } 
-                    } else {
-
-                    }
+                drawSquare(coordinate) {
+                    rectangle(this.getSquare(coordinate).coordinates.x, this.getSquare(coordinate).coordinates.y, this.getSquare(coordinate).size, this.getSquare(coordinate).size, this.getSquare(coordinate).color);
                 }
 
-                endGame() {
-                    this.gameOver = true;
-                    console.log("haha fuckwad you lost");
+                drawSquares() {
+                    for (var x = 0; x < this.squares.length; x++) {
+                        for (var y = 0; y < this.squares[x].length; y++) {
+                            this.drawSquare({x, y});
+                        }
+                    } 
+                }
+                
+                eatApple() {
+                    this.apple = new Apple(this);
                 }
             }
 
@@ -88,17 +89,35 @@
                 }
 
                 moveSnake(x, y) {
-                    this.coordinates.unshift(new Coordinate(this.coordinates[0].x + x, this.coordinates[0].y + y));
-                    if (this.coordinates[0].x < 0 || this.coordinates[0].x >= this.gamespace.squareBounds.x || this.coordinates[0].y < 0 || this.coordinates[0].y >= this.gamespace.squareBounds.y) {
-                        //Snake has collided with wall, end game
-                        this.gamespace.endGame();
+                    //Snake has collided with self, end game
+                    for (var coordinate of this.coordinates) {
+                        if (coordinate.x == this.coordinates[0].x + x && coordinate.y == this.coordinates[0].y + y) {
+                            stopUpdate();
+                            return;
+                        }
+                    }
+
+                    //Snake has collided with wall, end game
+                    if (this.coordinates[0].x + x < 0 || this.coordinates[0].x + x >= this.gamespace.squareBounds.x || this.coordinates[0].y + y < 0 || this.coordinates[0].y + y >= this.gamespace.squareBounds.y) {
+                        stopUpdate();
                         return;
                     }
 
+                    //Position valid, add it to snake
+                    this.coordinates.unshift(new Coordinate(this.coordinates[0].x + x, this.coordinates[0].y + y));
+
+                    //Check if snake has eaten apple, increase size
+                    if (this.coordinates[0].x == this.gamespace.apple.coordinates.x && this.coordinates[0].y == this.gamespace.apple.coordinates.y) {
+                        this.size++;
+                        this.gamespace.eatApple();
+                    };
+
+                    //Remove last segment if snake length exceeds size
                     if (this.coordinates.length > this.size) {
                         var undraw = this.coordinates.pop();
                         this.gamespace.getSquare(new Coordinate(0, 0));
                         this.gamespace.getSquare(undraw).color = this.gamespace.squareColor;
+                        this.gamespace.drawSquare(undraw);
                     }
 
                     this.drawSnake();
@@ -107,11 +126,9 @@
                 drawSnake() {
                     for (var draw of this.coordinates) {
                         this.gamespace.getSquare(draw).color = this.color;
+                        this.gamespace.drawSquare(draw);
                     }
-                }
-
-                // Kollisioner med orm och äpple
-                
+                }                
             }
 
             class Apple {
@@ -119,10 +136,10 @@
                     this.gamespace = Gamespace;
                     this.coordinates = new Coordinate(random(0, this.gamespace.maxX - 1), random(0, this.gamespace.maxY - 1))
 
-                    this.gamespace.getSquare(new Coordinate(this.coordinates.x, this.coordinates.y)).color = "red";
+                    this.gamespace.getSquare(this.coordinates).color = "red";
+                    this.gamespace.drawSquare(this.coordinates);
                 }
             }
-
             canvas = document.getElementById("canvas");
 			bounds = {
 				height: canvas.height,
@@ -130,14 +147,60 @@
 			}
 
             var space = new Gamespace(bounds, 20, 2);
-            var snake = new Snake(0, 0, space, "black", 5);
-            var apple = new Apple(space);
+            var direction = "";
 
+            updatesPerSecond = 25;
+
+            var frames = 0;
+
+            space.drawSquares();
 
             function update() {
-                clearScreen();
-                space.drawSquares();
-                snake.moveSnake(1, 0);
+                frames++;
+                if (frames % 5 == 0) {
+                    space.drawSquares();
+                } else {
+                    space.snake.drawSnake();
+                }
+
+                if (keyboard.right) {
+                    if (direction != "left") {
+                        direction = "right";
+                    }
+                } else if (keyboard.left) {
+                    if (direction != "right") {
+                        direction = "left";
+                    }
+                } else if (keyboard.up) {
+                    if (direction != "down") {
+                        direction = "up";
+                    }                
+                } else if (keyboard.down) {
+                    if (direction != "up") {
+                        direction = "down";
+                    }
+                }
+
+                switch(direction) {
+                    case "right": 
+                        space.snake.moveSnake(1, 0);
+                        break;
+
+                    case "left":
+                        space.snake.moveSnake(-1, 0);
+                        break;
+                    
+                    case "up":
+                        space.snake.moveSnake(0, -1);
+                        break;
+
+                    case "down":
+                        space.snake.moveSnake(0, 1);
+                        break;
+
+                    default:
+                        break;
+                }
             }
         </script>
     </body>
